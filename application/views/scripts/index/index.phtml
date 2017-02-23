@@ -1,0 +1,5 @@
+<ul>
+    <?php foreach ($this->entries as $entry): ?>
+    <li><a href="<?php echo $entry['href']; ?>"><?php echo $this->escape($entry['title']) ?></a><?php $entry['link'] ?></li>
+    <?php endforeach ?>
+</ul>

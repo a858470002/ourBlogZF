@@ -1,0 +1,27 @@
+<?php echo $this->doctype() ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
+        <?php echo $this->headTitle('OurBlog') ?>
+        <?php echo $this->headStyle() ?>
+    </head>
+    <body>
+        <div id="body">
+            <a id="logo" href="/">Ourblog</a>
+            <a class="nav" href="/">首页</a>
+            <?php 
+                if (isset($this->types)){
+                    foreach ($this->types as $type){
+                      echo $type;
+                    }
+                }
+            ?>
+            <hr style="margin-bottom: 50px;">
+
+            <!-- Content -->
+            <?php echo $this->layout()->content ?>
+        </div>
+    <?php echo $this->headScript() ?>
+    </body>
+</html>
