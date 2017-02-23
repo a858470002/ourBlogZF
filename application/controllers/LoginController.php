@@ -12,7 +12,7 @@ class LoginController extends Zend_Controller_Action
     {
         $auth = Zend_Auth::getInstance();
         if ($auth->hasIdentity()){
-            header('Location: /');
+            header('Location: /admin');
             exit;
         }
     }
@@ -29,6 +29,8 @@ class LoginController extends Zend_Controller_Action
             echo "<script>alert('".$e->getMessage()."');window.location.href='/login'</script>";
             exit;
         }
+        $auth = Zend_Auth::getInstance();
+        $result = $auth->authenticate($adapter);
         header('Location: /admin');
         exit;
     }

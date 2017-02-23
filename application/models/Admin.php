@@ -16,20 +16,10 @@ class Application_Model_Admin
         return $this;
     }
 
- 
-    public function fetchType()
-    {
-        $view = array(
-            "<a class='nav' href='/admin'>博文管理</a>",
-            "<a class='nav' href='/admin/add'>写博文</a>"
-            );
-        return $view;
-    }
-
-    public function fetchAll()
+    public function fetchAll($user_id)
     {
         $this->setDbTable('Application_Model_DbTable_Article');
-        $result = $this->_dbTable->select()->from('article',array('id','title'))->query()->fetchAll();
+        $result = $this->_dbTable->select()->from('article',array('id','title'))->where("user_id = ".$user_id)->query()->fetchAll();
 
         $view = array();
         foreach ($result as $v){
@@ -38,20 +28,6 @@ class Application_Model_Admin
             $view[$v['id']]['del']   = "/admin/del/?id=".$v['id'];
         }
         return $view;
-    }
-
-    public function content($id)
-    {
-        if(isset($id)){
-            $id = filter_var($id,FILTER_VALIDATE_INT,array('options' => array('min_range' => 1)));
-            if (!$id){
-                header('Location: /');
-                exit;
-            }
-        }
-        $this->setDbTable('Application_Model_DbTable_Article');
-        $result = $this->_dbTable->find($id);
-        return $result->current()->toArray();
     }
 
 }

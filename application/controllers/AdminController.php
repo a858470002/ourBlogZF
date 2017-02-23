@@ -2,20 +2,26 @@
 
 class AdminController extends Zend_Controller_Action
 {
+    private $user_id;
 
     public function init()
     {
-        /* Initialize action controller here */
+        // logincheck
+        $auth = Zend_Auth::getInstance();
+        if (!($auth->hasIdentity())){
+            header('Location: /login');
+            exit;
+        }
+        $user_id = $auth->getIdentity();
+        $this->user_id = $user_id;
+
         $this->_index = new Application_Model_Admin();
-        $this->view->types = $this->_index->fetchType();
+        $this->_helper->layout->setLayout('admin');
     }
 
     public function indexAction()
     {
-        // action body
-        $this->view->entries = $this->_index->fetchAll();
-        // var_dump($this->view->entries);
-        // exit;
+        $this->view->entries = $this->_index->fetchAll($this->user_id);
     }
 
 

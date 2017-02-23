@@ -8,7 +8,6 @@ class OurBlog_AuthAdapter implements Zend_Auth_Adapter_Interface
      */
     public function __construct($email, $password)
     {
-        // ...
         $this->email = $email;
         $this->password = $password;
     }
@@ -22,6 +21,7 @@ class OurBlog_AuthAdapter implements Zend_Auth_Adapter_Interface
      */
     public function authenticate()
     {
+        // Email
         $email = $this->email;
         if (empty($email)){
             throw new InvalidArgumentException("Please fill the Email");
@@ -30,6 +30,8 @@ class OurBlog_AuthAdapter implements Zend_Auth_Adapter_Interface
         if (!$email){
             throw new InvalidArgumentException("Illegal Email address");
         }
+
+        // Password
         $password = $this->password;
         if (empty($password)){
             throw new InvalidArgumentException("Please fill the Password");
