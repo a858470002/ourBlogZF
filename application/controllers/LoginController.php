@@ -24,7 +24,7 @@ class LoginController extends Zend_Controller_Action
 
         try {
             $adapter  = new OurBlog_AuthAdapter($email,$password);
-            $user_id  = $adapter->authenticate();
+            $adapter->authenticate();
         } catch (InvalidArgumentException $e) {
             echo "<script>alert('".$e->getMessage()."');window.location.href='/login'</script>";
             exit;

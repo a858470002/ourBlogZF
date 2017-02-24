@@ -2,7 +2,7 @@
 
 class Application_Model_Admin
 {
-    protected $_dbTable;
+    private $_dbTable;
 
     public function setDbTable($dbTable)
     {
@@ -13,13 +13,26 @@ class Application_Model_Admin
             throw new Exception('Invalid table data gateway provided');
         }
         $this->_dbTable = $dbTable;
-        return $this;
+        return $this->_dbTable;
+    }
+
+    private function dbConnect()
+    {
+        $db = new Zend_Db_Adapter_Pdo_Mysql(array(
+            'host'     => '127.0.0.1',
+            'username' => 'root',
+            'password' => '123456',
+            'dbname'   => 'blog_zf',
+            'charset'  => 'utf8'
+        ));
+
+        return $db;
     }
 
     public function fetchAll($user_id)
     {
-        $this->setDbTable('Application_Model_DbTable_Article');
-        $result = $this->_dbTable->select()->from('article',array('id','title'))->where("user_id = ".$user_id)->query()->fetchAll();
+        $article = $this->setDbTable('Application_Model_DbTable_Article');
+        $result  = $article->select()->from('article',array('id','title'))->where("user_id = ".$user_id)->query()->fetchAll();
 
         $view = array();
         foreach ($result as $v){
@@ -28,6 +41,150 @@ class Application_Model_Admin
             $view[$v['id']]['del']   = "/admin/del/?id=".$v['id'];
         }
         return $view;
+    }
+
+    // fetch column to add page
+    public function fetchColumn()
+    {
+        $types = $this->setDbTable('Application_Model_DbTable_Types');
+        $result = $types->fetchAll()->toArray();
+        return $result;
+    }
+
+    // add the article 
+    public function addArticle($data, $user_id)
+    {
+        $requiredKeys = array('column', 'title', 'formaltext', 'link', 'tag');
+        foreach ($requiredKeys as $key) {
+            if (!isset($data[$key])) {
+                throw new InvalidArgumentException("Missing requied key $key");
+            }
+        }
+
+        //column
+        $column = filter_var($data['column'], FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)));
+        if (!$column) {
+            throw new InvalidArgumentException('Column is invalid');
+        }
+
+        //title
+        $title = trim($data['title']);
+        if (empty($title)) {
+            throw new InvalidArgumentException('Please fill the title');
+        }
+        $length = mb_strlen($title, 'UTF-8');
+        if ($length > 64) {
+            throw new InvalidArgumentException('Title is over range(64)!');
+        }
+
+        //link or formaltext
+        $link = trim($data['link']);
+        $formaltext = trim($data['formaltext']);
+
+        if (empty($link) && empty($formaltext)) {
+            throw new InvalidArgumentException("You should fill content");
+        }
+        if (!empty($formaltext) && !empty($link)) {
+            throw new InvalidArgumentException('One of params(formaltext, link) must be empty');
+        }
+        if (!empty($formaltext)) {
+            $length  = mb_strlen($formaltext, 'UTF-8');
+            if ($length > 65534) {
+                throw new InvalidArgumentException('Formaltext is over range(65535)!');
+            }
+            $is_link = 0;
+        }
+        if (!empty($link)) {
+            $link = filter_var($link, FILTER_VALIDATE_URL);
+            if (!$link) {
+                throw new InvalidArgumentException('Link is invalid');
+            }
+            $is_link = 1;
+        }
+
+        //tag
+        if (!empty($data['tag'])) {
+            $tags = explode(',', $data['tag']);
+            if (count($tags) >= 10) {
+                throw new InvalidArgumentException('Don\'t use over 10 tags');
+            }
+            foreach ($tags as $value) {
+                $length = mb_strlen($value, 'UTF-8');
+                if ($length > 32) {
+                    throw new InvalidArgumentException('Some of tags is over range(32)!');
+                }
+            }
+        } else {
+            $tags = array();
+        }
+
+        // db start
+        $db = $this->dbConnect();
+        $db->beginTransaction();
+
+        $db->insert('article',array(
+                'title'      => $title,
+                'formaltext' => $formaltext,
+                'column'     => $column,
+                'user_id'    => $user_id,
+                'link'       => $link,
+                'is_link'    => $is_link
+            ));
+        $insert_id = $db->lastInsertId();
+
+        // If have tags
+        if (!empty($tags)) {
+            // Select all tags ,match the same
+            $sql = "SELECT * FROM tag WHERE name in (?".str_repeat(',?', count($tags)-1).") ";
+            
+            $sameTags = $db->fetchAll($sql,$tags);
+
+            $arr_id   = array();
+            $arr_name = array();
+
+            //Find the same tags id & name
+            foreach ($sameTags as $value) {
+                $arr_id[] = $value["id"];
+                $arr_name[] = $value["name"];
+            }
+
+            //Tags:which is not in table
+            $arr_diff = array_diff($tags, $arr_name);
+        } else {
+            $arr_diff = array();
+        }
+
+        //If appear new tags
+        if (!empty($arr_diff)) {
+            // 3.insert new tag (match, and del the same tag)
+            $db->insert('tag',array(
+                    'name'      => $arr_diff,
+                    'user_id'   => $user_id
+                ));
+        }
+
+        if (!empty($tags)) {
+            // 4.Select diff tags id
+            $sql = "SELECT * from tag WHERE name in (?".str_repeat(',?', count($tags)-1).")";
+            $diffTags = $db->fetchAll($sql,array(
+                'name' => $tags
+                ));
+
+            $arr_id   = array();
+            $arr_name = array();
+            //Find the same tags id & name
+            foreach ($diffTags as $value) {
+                $arr_id[] = $value["id"];
+                $arr_name[] = $value["name"];
+            }
+            
+            // 5.insert new tag & article (table tag_mid)
+            $db->insert('tag_mid',array(
+                    'tag_id'     => $arr_id,
+                    'article_id' => $article_id
+                ));
+        }
+        $db->commit();
     }
 
 }

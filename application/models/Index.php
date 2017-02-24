@@ -13,16 +13,16 @@ class Application_Model_Index
             throw new Exception('Invalid table data gateway provided');
         }
         $this->_dbTable = $dbTable;
-        return $this;
+        return $this->_dbTable;
     }
 
  
     public function fetchType()
     {
-        $this->setDbTable('Application_Model_DbTable_Types');
-        $types = $this->_dbTable->fetchAll()->toArray();
+        $types = $this->setDbTable('Application_Model_DbTable_Types');
+        $result = $types->fetchAll()->toArray();
         $view = array();
-        foreach ($types as $value) {
+        foreach ($result as $value) {
             $view[] = "<a class='nav' href='/index/?id=".$value['id']."'>".$value['name']."</a>";
         }
         return $view;
@@ -37,11 +37,11 @@ class Application_Model_Index
                 exit;
             }
         }
-        $this->setDbTable('Application_Model_DbTable_Article');
+        $article = $this->setDbTable('Application_Model_DbTable_Article');
         if ($id > 0){
-            $result = $this->_dbTable->select()->from('article',array('id','title','link','is_link'))->where("`column` = ".$id)->query()->fetchAll();
+            $result = $article->select()->from('article',array('id','title','link','is_link'))->where("`column` = ".$id)->query()->fetchAll();
         } else {
-            $result = $this->_dbTable->select()->from('article',array('id','title','link','is_link'))->query()->fetchAll();
+            $result = $article->select()->from('article',array('id','title','link','is_link'))->query()->fetchAll();
         }
         $view = array();
         foreach ($result as $v){
@@ -66,8 +66,8 @@ class Application_Model_Index
                 exit;
             }
         }
-        $this->setDbTable('Application_Model_DbTable_Article');
-        $result = $this->_dbTable->find($id);
+        $article = $this->setDbTable('Application_Model_DbTable_Article');
+        $result  = $article->find($id);
         return $result->current()->toArray();
     }
 

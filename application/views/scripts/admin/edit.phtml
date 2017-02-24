@@ -1,0 +1,11 @@
+<table width="90%" style="margin: 0 auto;">
+    <?php foreach ($this->entries as $entry): ?>
+    <tr>
+        <td width='80%'><h4><?php echo $this->escape($entry['title']) ?></h4></td>
+        <td>
+            <a href='<?php echo $entry['edit'] ?>'>编辑</a>
+            <a href='<?php echo $entry['del'] ?>'>删除</a>
+        </td>
+    </tr>
+    <?php endforeach ?>
+</table>

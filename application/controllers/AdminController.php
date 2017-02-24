@@ -4,6 +4,8 @@ class AdminController extends Zend_Controller_Action
 {
     private $user_id;
 
+    private $_index;
+
     public function init()
     {
         // logincheck
@@ -22,6 +24,28 @@ class AdminController extends Zend_Controller_Action
     public function indexAction()
     {
         $this->view->entries = $this->_index->fetchAll($this->user_id);
+    }
+
+    public function addAction()
+    {
+        // Page of add article
+        $this->view->entries = $this->_index->fetchColumn();
+    }
+
+    public function doaddAction()
+    {
+        $post = $this->getRequest()->getPost();
+        $this->_index->addArticle($post, $this->user_id);
+    }
+
+    public function editAction()
+    {
+        // Page of edit article
+    }
+
+    public function doeditAction()
+    {
+
     }
 
 
