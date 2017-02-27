@@ -4,7 +4,7 @@ class AdminController extends Zend_Controller_Action
 {
     private $user_id;
 
-    private $_index;
+    private $model;
 
     public function init()
     {
@@ -17,25 +17,25 @@ class AdminController extends Zend_Controller_Action
         $user_id = $auth->getIdentity();
         $this->user_id = $user_id;
 
-        $this->_index = new Application_Model_Admin();
+        $this->model = new Application_Model_Admin();
         $this->_helper->layout->setLayout('admin');
     }
 
     public function indexAction()
     {
-        $this->view->entries = $this->_index->fetchAll($this->user_id);
+        $this->view->entries = $this->model->fetchAll($this->user_id);
     }
 
     public function addAction()
     {
         // Page of add article
-        $this->view->entries = $this->_index->fetchColumn();
+        $this->view->entries = $this->model->fetchColumn();
     }
 
     public function doaddAction()
     {
         $post = $this->getRequest()->getPost();
-        $this->_index->addArticle($post, $this->user_id);
+        $this->model->addArticle($post, $this->user_id);
     }
 
     public function editAction()

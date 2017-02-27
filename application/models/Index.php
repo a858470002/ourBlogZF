@@ -19,8 +19,7 @@ class Application_Model_Index
  
     public function fetchType()
     {
-        $types = $this->setDbTable('Application_Model_DbTable_Types');
-        $result = $types->fetchAll()->toArray();
+        $result = $this->setDbTable('Application_Model_DbTable_Types')->fetchAll();
         $view = array();
         foreach ($result as $value) {
             $view[] = "<a class='nav' href='/index/?id=".$value['id']."'>".$value['name']."</a>";
@@ -47,11 +46,15 @@ class Application_Model_Index
         foreach ($result as $v){
             $view[$v['id']]['title'] = $v['title'];
             if ($v['is_link'] == 0) {
-                $view[$v['id']]['href'] = "/index/content/?id=".$v['id'];
-                $view[$v['id']]['link'] = '';
+                $view[$v['id']] = array(
+                    'href' => "/index/content/?id=".$v['id'];
+                    'link' => '';
+                    );
             } else {
-                $view[$v['id']]['href'] = $v['link'];
-                $view[$v['id']]['link'] = "<sup title='It is a link'>[link]</sup>";
+                $view[$v['id']] = array(
+                    'href' => $v['link'];
+                    'link' => "<sup title='It is a link'>[link]</sup>";
+                    );
             }
         }
         return $view;
@@ -68,7 +71,7 @@ class Application_Model_Index
         }
         $article = $this->setDbTable('Application_Model_DbTable_Article');
         $result  = $article->find($id);
-        return $result->current()->toArray();
+        return $result->current();
     }
 
 }

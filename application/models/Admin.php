@@ -28,9 +28,11 @@ class Application_Model_Admin
 
         $view = array();
         foreach ($result as $v){
-            $view[$v['id']]['title'] = $v['title'];
-            $view[$v['id']]['edit']  = "/admin/edit/?id=".$v['id'];
-            $view[$v['id']]['del']   = "/admin/del/?id=".$v['id'];
+            $view[$v['id']] = array(
+                'title' = $v['title'];
+                'edit'  = "/admin/edit/?id=".$v['id'];
+                'del'   = "/admin/del/?id=".$v['id'];
+                );
         }
         return $view;
     }
@@ -39,7 +41,7 @@ class Application_Model_Admin
     public function fetchColumn()
     {
         $types = $this->setDbTable('Application_Model_DbTable_Types');
-        $result = $types->fetchAll()->toArray();
+        $result = $types->fetchAll();
         return $result;
     }
 
@@ -123,7 +125,6 @@ class Application_Model_Admin
                 'is_link'    => $is_link
             ));
         $article_id = $db->lastInsertId();
-        // var_dump($article_id);die;
 
         // If have tags
         if (!empty($tags)) {
@@ -164,11 +165,9 @@ class Application_Model_Admin
             $diffTags = $db->fetchAll($sql, $tags);
 
             $arr_id   = array();
-            $arr_name = array();
             //Find the same tags id & name
             foreach ($diffTags as $value) {
                 $arr_id[] = $value["id"];
-                $arr_name[] = $value["name"];
             }
             
             // 5.insert new tag & article (table tag_mid)
@@ -184,5 +183,9 @@ class Application_Model_Admin
         return $article_id;
     }
 
+    public function editArticle($data, $user_id)
+    {
+
+    }
 }
 
