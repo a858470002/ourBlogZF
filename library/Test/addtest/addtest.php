@@ -1,7 +1,7 @@
 <?php
 set_include_path('../../../library');
-require_once '/Zend/Loader/Autoloader.php';
-require_once '../../application/models/Admin.php';
+require_once '../../Zend/Loader/Autoloader.php';
+require_once '../../../application/models/Admin.php';
 $autoloader = Zend_Loader_Autoloader::getInstance();
 $autoloader->registerNamespace('OurBlog_');
 $db = new Zend_Db_Adapter_Pdo_Mysql(array(
@@ -12,8 +12,7 @@ $db = new Zend_Db_Adapter_Pdo_Mysql(array(
             'charset'  => 'utf8'
         ));
 Zend_Db_Table_Abstract::setDefaultAdapter($db);
-include __DIR__.'/MyApp_DbUnit_ArrayDataSet.php';
-require __DIR__.'/dataset.php';
+include __DIR__.'/../MyApp_DbUnit_ArrayDataSet.php';
 
 class mainTest extends PHPUnit_Extensions_Database_TestCase
 {   

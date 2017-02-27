@@ -18,15 +18,7 @@ class Application_Model_Admin
 
     private function dbConnect()
     {
-        $db = new Zend_Db_Adapter_Pdo_Mysql(array(
-            'host'     => '127.0.0.1',
-            'username' => 'root',
-            'password' => '123456',
-            'dbname'   => 'blog_zf',
-            'charset'  => 'utf8'
-        ));
-
-        return $db;
+        return Zend_Db_Table_Abstract::getDefaultAdapter();
     }
 
     public function fetchAll($user_id)
@@ -130,14 +122,15 @@ class Application_Model_Admin
                 'link'       => $link,
                 'is_link'    => $is_link
             ));
-        $insert_id = $db->lastInsertId();
+        $article_id = $db->lastInsertId();
+        // var_dump($article_id);die;
 
         // If have tags
         if (!empty($tags)) {
             // Select all tags ,match the same
             $sql = "SELECT * FROM tag WHERE name in (?".str_repeat(',?', count($tags)-1).") ";
             
-            $sameTags = $db->fetchAll($sql,$tags);
+            $sameTags = $db->fetchAll($sql, $tags);
 
             $arr_id   = array();
             $arr_name = array();
@@ -157,18 +150,18 @@ class Application_Model_Admin
         //If appear new tags
         if (!empty($arr_diff)) {
             // 3.insert new tag (match, and del the same tag)
-            $db->insert('tag',array(
-                    'name'      => $arr_diff,
-                    'user_id'   => $user_id
-                ));
+            foreach ($arr_diff as $v){
+                $db->insert('tag',array(
+                        'name'      => $v,
+                        'user_id'   => $user_id
+                    ));
+            }
         }
 
         if (!empty($tags)) {
             // 4.Select diff tags id
             $sql = "SELECT * from tag WHERE name in (?".str_repeat(',?', count($tags)-1).")";
-            $diffTags = $db->fetchAll($sql,array(
-                'name' => $tags
-                ));
+            $diffTags = $db->fetchAll($sql, $tags);
 
             $arr_id   = array();
             $arr_name = array();
@@ -179,12 +172,16 @@ class Application_Model_Admin
             }
             
             // 5.insert new tag & article (table tag_mid)
-            $db->insert('tag_mid',array(
-                    'tag_id'     => $arr_id,
-                    'article_id' => $article_id
-                ));
+            foreach ($arr_id as $v){
+                $db->insert('tag_mid',array(
+                        'tag_id'     => $v,
+                        'article_id' => $article_id
+                    ));
+            }
         }
         $db->commit();
+
+        return $article_id;
     }
 
 }

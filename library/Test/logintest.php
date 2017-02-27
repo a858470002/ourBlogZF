@@ -91,13 +91,4 @@ class Test_logintest extends PHPUnit_Framework_TestCase
         $expectedResult = new Zend_Auth_Result(Zend_Auth_Result::SUCCESS, 3);
         $this->assertEquals($expectedResult, $actualResult);
     }
-
-    public function testLogin()
-    {
-        $data    = array('email'=>'tianyi@163.com', 'password'=>'123');
-        $adapter  = new OurBlog_AuthAdapter($data['email'], $data['password']);
-        $actualResult =  $adapter->authenticate();
-        $expectedResult = new Zend_Auth_Result(Zend_Auth_Result::SUCCESS, 1);
-        $this->assertEquals($expectedResult, $actualResult);
-    }
 }

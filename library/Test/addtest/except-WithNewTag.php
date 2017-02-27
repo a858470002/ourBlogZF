@@ -12,8 +12,8 @@ return array(
             ),
         array(
             'id'         => 2,
-            'title'      => "testTitle'or''",
-            'formaltext' => "testFormaltext'or''",
+            'title'      => "title",
+            'formaltext' => "testFormaltext",
             'column'     => 1,
             'user_id'    => 1,
             'link'       => '',
@@ -22,12 +22,15 @@ return array(
     ),
     "tag"=>array(
         array("id"=>1, "name"=>"php", "user_id"=>1),
-        array("id"=>2, "name"=>"java", "user_id"=>1)
+        array("id"=>2, "name"=>"java", "user_id"=>1),
+        array("id"=>3, "name"=>"js", "user_id"=>1),
+        array("id"=>4, "name"=>"c++", "user_id"=>1)
+
     ),
     "tag_mid"=>array(
         array("id"=>1, "tag_id"=>1, "article_id"=>1),
         array("id"=>2, "tag_id"=>2, "article_id"=>1),
-        array("id"=>3, "tag_id"=>1, "article_id"=>2),
-        array("id"=>4, "tag_id"=>2, "article_id"=>2)
+        array("id"=>3, "tag_id"=>3, "article_id"=>2),
+        array("id"=>4, "tag_id"=>4, "article_id"=>2)   
     )
 );
