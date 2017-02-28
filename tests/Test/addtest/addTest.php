@@ -1,19 +1,4 @@
 <?php
-set_include_path('../../../library');
-require_once '../../Zend/Loader/Autoloader.php';
-require_once '../../../application/models/Admin.php';
-$autoloader = Zend_Loader_Autoloader::getInstance();
-$autoloader->registerNamespace('OurBlog_');
-$db = new Zend_Db_Adapter_Pdo_Mysql(array(
-            'host'     => '127.0.0.1',
-            'username' => 'root',
-            'password' => '123456',
-            'dbname'   => 'blog_zftest',
-            'charset'  => 'utf8'
-        ));
-Zend_Db_Table_Abstract::setDefaultAdapter($db);
-include __DIR__.'/../MyApp_DbUnit_ArrayDataSet.php';
-
 class mainTest extends PHPUnit_Extensions_Database_TestCase
 {   
     private $data;
@@ -136,17 +121,6 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
         $admin = new Application_Model_Admin;
         $admin->addArticle($this->data, 1);
     }
-
-    /**
-     * @expectedException   InvalidArgumentException
-     * @expectedExceptionMessage One of params(formaltext, link) must be empty
-     */
-    public function testAddArticleSetBothFormaltextAndLink()
-    {
-        $this->data['link'] = 'http://www.baidu.com';
-        $admin = new Application_Model_Admin;
-        $admin->addArticle($this->data, 1);
-    }
     
     /**
      * @expectedException   InvalidArgumentException
@@ -207,6 +181,17 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
     public function testAddArticleWithSomeNewTag()
     {
         $this->data['tag'] = 'php,java,js';
+        $admin = new Application_Model_Admin;
+        $admin->addArticle($this->data, 1);
+        $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-WithSomeNewTag.php');
+        $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
+
+        $this->assertDataSetsEqual($expectedTable,$actualTable);
+    }
+
+    public function testAddArticleWithSomeSameTag()
+    {
+        $this->data['tag'] = 'php,java,js,js,js,php,java';
         $admin = new Application_Model_Admin;
         $admin->addArticle($this->data, 1);
         $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-WithSomeNewTag.php');

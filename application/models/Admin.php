@@ -29,9 +29,9 @@ class Application_Model_Admin
         $view = array();
         foreach ($result as $v){
             $view[$v['id']] = array(
-                'title' = $v['title'];
-                'edit'  = "/admin/edit/?id=".$v['id'];
-                'del'   = "/admin/del/?id=".$v['id'];
+                'title' => $v['title'],
+                'edit'  => "/admin/edit/?id=".$v['id'],
+                'del'   => "/admin/del/?id=".$v['id']
                 );
         }
         return $view;
@@ -75,20 +75,20 @@ class Application_Model_Admin
         $link = trim($data['link']);
         $formaltext = trim($data['formaltext']);
 
-        if (empty($link) && empty($formaltext)) {
-            throw new InvalidArgumentException("You should fill content");
-        }
-        if (!empty($formaltext) && !empty($link)) {
-            throw new InvalidArgumentException('One of params(formaltext, link) must be empty');
-        }
-        if (!empty($formaltext)) {
+        if ($formaltext){
             $length  = mb_strlen($formaltext, 'UTF-8');
             if ($length > 65534) {
                 throw new InvalidArgumentException('Formaltext is over range(65535)!');
             }
             $is_link = 0;
-        }
-        if (!empty($link)) {
+        } else {
+            $length  = mb_strlen($link, 'UTF-8');
+            if ($length == 0){
+                throw new InvalidArgumentException("You should fill content");
+            }
+            if ($length > 2000) {
+                throw new InvalidArgumentException('Link is over range(65535)!');
+            }
             $link = filter_var($link, FILTER_VALIDATE_URL);
             if (!$link) {
                 throw new InvalidArgumentException('Link is invalid');
@@ -98,14 +98,20 @@ class Application_Model_Admin
 
         //tag
         if (!empty($data['tag'])) {
-            $tags = explode(',', $data['tag']);
-            if (count($tags) >= 10) {
+            $tagsExplode = explode(',', $data['tag']);
+            if (count($tagsExplode) >= 10) {
                 throw new InvalidArgumentException('Don\'t use over 10 tags');
             }
-            foreach ($tags as $value) {
-                $length = mb_strlen($value, 'UTF-8');
-                if ($length > 32) {
-                    throw new InvalidArgumentException('Some of tags is over range(32)!');
+            $tags = array();
+            foreach ($tagsExplode as $value) {
+                if ($value){
+                    if (!in_array($value, $tags)){
+                        $length = mb_strlen($value, 'UTF-8');
+                        if ($length > 32) {
+                            throw new InvalidArgumentException('Some of tags is over range(32)!');
+                        }
+                        $tags[] = $value;
+                    }
                 }
             }
         } else {
@@ -116,71 +122,74 @@ class Application_Model_Admin
         $db = $this->dbConnect();
         $db->beginTransaction();
 
-        $db->insert('article',array(
-                'title'      => $title,
-                'formaltext' => $formaltext,
-                'column'     => $column,
-                'user_id'    => $user_id,
-                'link'       => $link,
-                'is_link'    => $is_link
-            ));
-        $article_id = $db->lastInsertId();
+        try {
+            $db->insert('article', array(
+                    'title'      => $title,
+                    'formaltext' => $formaltext,
+                    'column'     => $column,
+                    'user_id'    => $user_id,
+                    'link'       => $link,
+                    'is_link'    => $is_link
+                ));
+            $article_id = $db->lastInsertId();
 
-        // If have tags
-        if (!empty($tags)) {
-            // Select all tags ,match the same
-            $sql = "SELECT * FROM tag WHERE name in (?".str_repeat(',?', count($tags)-1).") ";
-            
-            $sameTags = $db->fetchAll($sql, $tags);
+            // If have tags
+            if (!empty($tags)) {
+                // Select all tags ,match the same
+                $sql = "SELECT * FROM tag WHERE name in (?".str_repeat(',?', count($tags)-1).") ";
+                
+                $sameTags = $db->fetchAll($sql, $tags);
 
-            $arr_id   = array();
-            $arr_name = array();
+                $arr_id   = array();
+                $arr_name = array();
 
-            //Find the same tags id & name
-            foreach ($sameTags as $value) {
-                $arr_id[] = $value["id"];
-                $arr_name[] = $value["name"];
+                //Find the same tags id & name
+                foreach ($sameTags as $value) {
+                    $arr_id[] = $value["id"];
+                    $arr_name[] = $value["name"];
+                }
+
+                //Tags:which is not in table
+                $arr_diff = array_diff($tags, $arr_name);
+            } else {
+                $arr_diff = array();
             }
 
-            //Tags:which is not in table
-            $arr_diff = array_diff($tags, $arr_name);
-        } else {
-            $arr_diff = array();
+            //If appear new tags
+            if (!empty($arr_diff)) {
+                // 3.insert new tag (match, and del the same tag)
+                foreach ($arr_diff as $v){
+                    $db->insert('tag',array(
+                            'name'      => $v,
+                            'user_id'   => $user_id
+                        ));
+                }
+            }
+
+            if (!empty($tags)) {
+                // 4.Select diff tags id
+                $sql = "SELECT * from tag WHERE name in (?".str_repeat(',?', count($tags)-1).")";
+                $diffTags = $db->fetchAll($sql, $tags);
+
+                $arr_id   = array();
+                //Find the same tags id & name
+                foreach ($diffTags as $value) {
+                    $arr_id[] = $value["id"];
+                }
+                
+                // 5.insert new tag & article (table tag_mid)
+                foreach ($arr_id as $v){
+                    $db->insert('tag_mid',array(
+                            'tag_id'     => $v,
+                            'article_id' => $article_id
+                        ));
+                }
+            }
+            $db->commit();
+        } catch (Exception $e) {
+            $db->rollBack();
+            throw $e;
         }
-
-        //If appear new tags
-        if (!empty($arr_diff)) {
-            // 3.insert new tag (match, and del the same tag)
-            foreach ($arr_diff as $v){
-                $db->insert('tag',array(
-                        'name'      => $v,
-                        'user_id'   => $user_id
-                    ));
-            }
-        }
-
-        if (!empty($tags)) {
-            // 4.Select diff tags id
-            $sql = "SELECT * from tag WHERE name in (?".str_repeat(',?', count($tags)-1).")";
-            $diffTags = $db->fetchAll($sql, $tags);
-
-            $arr_id   = array();
-            //Find the same tags id & name
-            foreach ($diffTags as $value) {
-                $arr_id[] = $value["id"];
-            }
-            
-            // 5.insert new tag & article (table tag_mid)
-            foreach ($arr_id as $v){
-                $db->insert('tag_mid',array(
-                        'tag_id'     => $v,
-                        'article_id' => $article_id
-                    ));
-            }
-        }
-        $db->commit();
-
-        return $article_id;
     }
 
     public function editArticle($data, $user_id)

@@ -44,16 +44,17 @@ class Application_Model_Index
         }
         $view = array();
         foreach ($result as $v){
-            $view[$v['id']]['title'] = $v['title'];
-            if ($v['is_link'] == 0) {
+            if ($v['is_link'] == 0){
                 $view[$v['id']] = array(
-                    'href' => "/index/content/?id=".$v['id'];
-                    'link' => '';
+                    'title'=> $v['title'],
+                    'href' => "/index/content/?id=".$v['id'],
+                    'link' => ''
                     );
             } else {
                 $view[$v['id']] = array(
-                    'href' => $v['link'];
-                    'link' => "<sup title='It is a link'>[link]</sup>";
+                    'title'=> $v['title'],
+                    'href' => $v['link'],
+                    'link' => "<sup title='It is a link'>[link]</sup>"
                     );
             }
         }

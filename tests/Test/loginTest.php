@@ -1,18 +1,4 @@
 <?php
-set_include_path('../../library');
-require_once '../Zend/Loader/Autoloader.php';
-$autoloader = Zend_Loader_Autoloader::getInstance();
-$autoloader->registerNamespace('OurBlog_');
-$db = new Zend_Db_Adapter_Pdo_Mysql(array(
-            'host'     => '127.0.0.1',
-            'username' => 'root',
-            'password' => '123456',
-            'dbname'   => 'blog_zftest',
-            'charset'  => 'utf8'
-        ));
-Zend_Db_Table_Abstract::setDefaultAdapter($db);
-require_once '../../application/models/DbTable/User.php';
-
 class Test_logintest extends PHPUnit_Framework_TestCase
 {   
     // Login test

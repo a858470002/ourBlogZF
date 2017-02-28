@@ -35,7 +35,13 @@ class AdminController extends Zend_Controller_Action
     public function doaddAction()
     {
         $post = $this->getRequest()->getPost();
-        $this->model->addArticle($post, $this->user_id);
+        try {
+            $this->model->addArticle($post, $this->user_id);
+        } catch (InvalidArgumentException $e){
+            echo "<script>alert('".$e->getMessage()."');window.location.href='/admin/add'</script>";
+            exit;
+        }
+        echo "<script>alert('添加成功');window.location.href='/admin';</script>";
     }
 
     public function editAction()
