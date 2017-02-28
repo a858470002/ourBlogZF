@@ -1,6 +1,6 @@
 <?php
 class mainTest extends PHPUnit_Extensions_Database_TestCase
-{   
+{
     private $data;
 
     public function getConnection()
@@ -153,7 +153,7 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
         $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-SQLInjection.php');
         $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
 
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
     }
 
     public function testAddArticleWithoutTag()
@@ -164,7 +164,7 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
         $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-WithoutTag.php');
         $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
 
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
     }
 
     public function testAddArticleWithNewTag()
@@ -175,7 +175,7 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
         $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-WithNewTag.php');
         $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
 
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
     }
 
     public function testAddArticleWithSomeNewTag()
@@ -186,7 +186,7 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
         $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-WithSomeNewTag.php');
         $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
 
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
     }
 
     public function testAddArticleWithSomeSameTag()
@@ -197,7 +197,6 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
         $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-WithSomeNewTag.php');
         $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
 
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
     }
-
 }

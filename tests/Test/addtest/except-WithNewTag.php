@@ -31,6 +31,5 @@ return array(
         array("id"=>1, "tag_id"=>1, "article_id"=>1),
         array("id"=>2, "tag_id"=>2, "article_id"=>1),
         array("id"=>3, "tag_id"=>3, "article_id"=>2),
-        array("id"=>4, "tag_id"=>4, "article_id"=>2)   
-    )
-);
+        array("id"=>4, "tag_id"=>4, "article_id"=>2)
+    ));

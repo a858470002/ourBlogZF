@@ -27,5 +27,4 @@ return array(
     "tag_mid"=>array(
         array("id"=>1, "tag_id"=>1, "article_id"=>1),
         array("id"=>2, "tag_id"=>2, "article_id"=>1)
-    )
-);
+    ));

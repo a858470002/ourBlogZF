@@ -2,7 +2,7 @@
 
 class Application_Model_Index
 {
-    protected $_dbTable;
+    protected $dbTable;
 
     public function setDbTable($dbTable)
     {
@@ -12,8 +12,8 @@ class Application_Model_Index
         if (!$dbTable instanceof Zend_Db_Table_Abstract) {
             throw new Exception('Invalid table data gateway provided');
         }
-        $this->_dbTable = $dbTable;
-        return $this->_dbTable;
+        $this->dbTable = $dbTable;
+        return $this->dbTable;
     }
 
  
@@ -29,22 +29,22 @@ class Application_Model_Index
 
     public function fetchAll($id)
     {
-        if(isset($id)){
-            $id = filter_var($id,FILTER_VALIDATE_INT,array('options' => array('min_range' => 0)));
-            if (!$id){
+        if (isset($id)) {
+            $id = filter_var($id, FILTER_VALIDATE_INT, array('options' => array('min_range' => 0)));
+            if (!$id) {
                 header('Location: /');
                 exit;
             }
         }
         $article = $this->setDbTable('Application_Model_DbTable_Article');
-        if ($id > 0){
-            $result = $article->select()->from('article',array('id','title','link','is_link'))->where("`column` = ".$id)->query()->fetchAll();
+        if ($id > 0) {
+            $result = $article->select()->from('article', array('id', 'title', 'link', 'is_link'))->where("`column` = ".$id)->query()->fetchAll();
         } else {
-            $result = $article->select()->from('article',array('id','title','link','is_link'))->query()->fetchAll();
+            $result = $article->select()->from('article', array('id', 'title', 'link', 'is_link'))->query()->fetchAll();
         }
         $view = array();
-        foreach ($result as $v){
-            if ($v['is_link'] == 0){
+        foreach ($result as $v) {
+            if ($v['is_link'] == 0) {
                 $view[$v['id']] = array(
                     'title'=> $v['title'],
                     'href' => "/index/content/?id=".$v['id'],
@@ -63,9 +63,9 @@ class Application_Model_Index
 
     public function content($id)
     {
-        if(isset($id)){
-            $id = filter_var($id,FILTER_VALIDATE_INT,array('options' => array('min_range' => 1)));
-            if (!$id){
+        if (isset($id)) {
+            $id = filter_var($id, FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)));
+            if (!$id) {
                 header('Location: /');
                 exit;
             }
@@ -74,6 +74,4 @@ class Application_Model_Index
         $result  = $article->find($id);
         return $result->current();
     }
-
 }
-

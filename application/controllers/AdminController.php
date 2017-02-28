@@ -10,7 +10,7 @@ class AdminController extends Zend_Controller_Action
     {
         // logincheck
         $auth = Zend_Auth::getInstance();
-        if (!($auth->hasIdentity())){
+        if (!($auth->hasIdentity())) {
             header('Location: /login');
             exit;
         }
@@ -37,7 +37,7 @@ class AdminController extends Zend_Controller_Action
         $post = $this->getRequest()->getPost();
         try {
             $this->model->addArticle($post, $this->user_id);
-        } catch (InvalidArgumentException $e){
+        } catch (InvalidArgumentException $e) {
             echo "<script>alert('".$e->getMessage()."');window.location.href='/admin/add'</script>";
             exit;
         }
@@ -51,9 +51,5 @@ class AdminController extends Zend_Controller_Action
 
     public function doeditAction()
     {
-
     }
-
-
 }
-
