@@ -3,17 +3,26 @@
         <testsuite name="BlogLogin">
             <file>./Test/loginTest.php</file>
         </testsuite>
-        <testsuite name="Blog">
+        <testsuite name="BlogAdd">
             <directory>./Test/addtest/</directory>
+        </testsuite>
+        <testsuite name="BlogEdit">
+            <directory>./Test/edittest/</directory>
+        </testsuite>
+        <testsuite name="BlogAll">
+            <file>./Test/loginTest.php</file>
+            <directory>./Test/addtest/</directory>
+            <directory>./Test/edittest/</directory>
         </testsuite>
     </testsuites>
     
     <filter>
         <!-- If Zend Framework is inside your project's library, uncomment this filter -->
-        <!-- 
         <whitelist>
             <directory suffix=".php">../../library/Zend</directory>
         </whitelist>
-        -->
     </filter>
+    <logging>
+        <log type="coverage-html" target="report"/>
+    </logging>
 </phpunit>

@@ -21,10 +21,10 @@ return array(
             )
     ),
     "tag"=>array(
-        array("id"=>1, "name"=>"php", "user_id"=>1),
-        array("id"=>2, "name"=>"java", "user_id"=>1),
-        array("id"=>3, "name"=>"js", "user_id"=>1),
-        array("id"=>4, "name"=>"c++", "user_id"=>1)
+        array("id"=>1, "name"=>"php"),
+        array("id"=>2, "name"=>"java"),
+        array("id"=>3, "name"=>"js"),
+        array("id"=>4, "name"=>"c++")
 
     ),
     "tag_mid"=>array(

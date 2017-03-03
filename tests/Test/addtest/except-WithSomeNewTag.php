@@ -21,9 +21,9 @@ return array(
             )
     ),
     "tag"=>array(
-        array("id"=>1, "name"=>"php", "user_id"=>1),
-        array("id"=>2, "name"=>"java", "user_id"=>1),
-        array("id"=>3, "name"=>"js", "user_id"=>1)
+        array("id"=>1, "name"=>"php"),
+        array("id"=>2, "name"=>"java"),
+        array("id"=>3, "name"=>"js")
 
     ),
     "tag_mid"=>array(

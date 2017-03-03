@@ -1,8 +1,36 @@
 <?php
-class Test_logintest extends PHPUnit_Framework_TestCase
-{   
-    // Login test
+class Test_logintest extends PHPUnit_Extensions_Database_TestCase
+{
+    public function getConnection()
+    {
+        global $db;
+        return $this->createDefaultDBConnection($db->getConnection(), 'blog_zftest');
+    }
 
+    public function getDataSet()
+    {
+        $arrSet = array(
+            'user'=>array(
+                array(
+                    'id'         => 1,
+                    'email'      => 'tianyi@163.com',
+                    'password'   => md5('Zfxv' . md5('123'))
+                ),
+                array(
+                    'id'         => 2,
+                    'email'      => "'or''@163.com",
+                    'password'   => md5('Zfxv' . md5('123'))
+                ),
+                array(
+                    'id'         => 3,
+                    'email'      => 'abc@163.com',
+                    'password'   => md5('Zfxv' . md5("'or''"))
+                )
+            )
+        );
+        return new MyApp_DbUnit_ArrayDataSet($arrSet);
+    }
+    // Login test
 
     /**
      * @expectedException   InvalidArgumentException
@@ -57,7 +85,7 @@ class Test_logintest extends PHPUnit_Framework_TestCase
         $data = array('email'=>'tianyi@163.com', 'password'=>'000000');
         $adapter  = new OurBlog_AuthAdapter($data['email'], $data['password']);
         $user_id  = $adapter->authenticate();
-        $this->assertEquals(False, $user_id);
+        $this->assertEquals(false, $user_id);
     }
 
     public function testLoginEmailInject()

@@ -23,8 +23,8 @@
     <select id="column" name="column">
         <option value="0">所属栏目</option>
         <?php
-            foreach($this->entries as $entry){
-                echo "<option value=".$entry['id'].">".htmlspecialchars($entry['name'])."</option>";
+            foreach ($this->columns as $column) {
+                echo "<option value=" . $column['id'] . ">" . $this->escape($column['name']) . "</option>";
             };
         ?>
     </select>

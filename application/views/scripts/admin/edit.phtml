@@ -1,11 +1,51 @@
-<table width="90%" style="margin: 0 auto;">
-    <?php foreach ($this->entries as $entry): ?>
-    <tr>
-        <td width='80%'><h4><?php echo $this->escape($entry['title']) ?></h4></td>
-        <td>
-            <a href='<?php echo $entry['edit'] ?>'>编辑</a>
-            <a href='<?php echo $entry['del'] ?>'>删除</a>
-        </td>
-    </tr>
-    <?php endforeach ?>
-</table>
+<form id="form" action="/admin/doedit/?id=<?php echo $this->article['id']; ?>" method="post">
+    <input type="hidden" id="article" value="<?php echo $this->article['id']; ?>">
+    <select id="column" name="column" style="min-width:200px;background: white;">
+        <option value="0">所属栏目</option>
+        <?php
+        foreach ($this->columns as $v) {
+            if ($v['id'] == $this->article['column']) {
+                echo "<option value=".$v['id']." selected>".$this->escape($v['name'])."</option>";
+            } else {
+                echo "<option value=".$v['id'].">".$this->escape($v['name'])."</option>";
+            }
+        }
+        ?>
+    </select><br><br>
+    <input id="title" type="text" name="title" placeholder="标题" value="<?php echo $this->escape($this->article['title']); ?>" style="width:80%"><br><br>
+    <?php if ($this->article['is_link'] == 0) { ?>
+            <textarea id='formaltext' name='formaltext' placeholder='正文' style='width: 80%;height: 500px;overflow-y: scroll;resize: none;'>
+<?php echo htmlspecialchars($this->article['formaltext']); ?></textarea><br><br>
+    <?php } else { ?>
+            <input id='formaltext' type='text' name='link' placeholder='链接' value="<?php echo $this->escape($this->article['link']); ?>" style='width: 40%;'><br><br>
+    <?php } ?>
+    <input id='tag_<?php echo $this->article['id']; ?>' name='tag' type='text' placeholder='标签' value="<?php echo $this->escape($this->article['tags']); ?>">请用英文“,”分割，32个字符以内，不超过10个标签
+    <br><br>
+    <button onclick="check()" type="button">提交</button>
+    <input type="button" onclick="link()" value="插入文本" />
+</form>
+<?php $this->headScript()->appendFile('/js/jquery-1.8.3.min.js') ?>
+<?php $this->headScript()->captureStart() ?>
+//提交时check是否为空
+function check(){
+    //获取栏目
+    var column = document.getElementById('column');
+    var selected = column.selectedIndex;
+
+    //分别获取栏目的value、标题value、正文value
+    var value1 = column.options[selected].value;
+    var value2 = document.getElementById('title').value
+    var value3 = document.getElementById('formaltext').value
+
+    //判断并弹窗，成功则submit表单
+    if (value1 == 0) {
+        alert("Please choose a column!");
+    } else {
+        if (value2 == '' || value3 == '') {
+            alert('Please fill the blank!');
+        } else {
+            document.getElementById('form').submit();
+        }
+    }
+}
+<?php $this->headScript()->captureEnd() ?>

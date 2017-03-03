@@ -63,12 +63,10 @@ class Application_Model_Index
 
     public function content($id)
     {
-        if (isset($id)) {
-            $id = filter_var($id, FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)));
-            if (!$id) {
-                header('Location: /');
-                exit;
-            }
+        $id = filter_var($id, FILTER_VALIDATE_INT, array('options' => array('min_range' => 1)));
+        if (!$id) {
+            header('Location: /');
+            exit;
         }
         $article = $this->setDbTable('Application_Model_DbTable_Article');
         $result  = $article->find($id);

@@ -19,6 +19,7 @@ $autoloader = Zend_Loader_Autoloader::getInstance();
 
 require_once APPLICATION_PATH . '/models/Admin.php';
 require_once APPLICATION_PATH . '/models/DbTable/User.php';
+require_once APPLICATION_PATH . '/models/DbTable/Article.php';
 $autoloader->registerNamespace('OurBlog_');
 $db = new Zend_Db_Adapter_Pdo_Mysql(array(
             'host'     => '127.0.0.1',

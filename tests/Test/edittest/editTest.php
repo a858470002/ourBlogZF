@@ -1,49 +1,27 @@
 <?php
-set_include_path('../../library');
-// var_dump(get_include_path());die;
-require_once '../Zend/Loader/Autoloader.php';
-$autoloader = Zend_Loader_Autoloader::getInstance();
-$autoloader->registerNamespace('OurBlog_');
-$db = new Zend_Db_Adapter_Pdo_Mysql(array(
-            'host'     => '127.0.0.1',
-            'username' => 'root',
-            'password' => '123456',
-            'dbname'   => 'blog_zftest',
-            'charset'  => 'utf8'
-        ));
-Zend_Db_Table_Abstract::setDefaultAdapter($db);
-include __DIR__.'/MyApp_DbUnit_ArrayDataSet.php';
-require __DIR__.'/dataset.php';
+class EditTest extends PHPUnit_Extensions_Database_TestCase
+{
+    private $data;
 
-class mainTest extends PHPUnit_Extensions_Database_TestCase
-{   
+    private $model;
+
     public function getConnection()
     {
-        $pdo = new PDO('mysql:host=127.0.0.1;dbname=blog_test;charset=utf8', 'root', '123456');
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return $this->createDefaultDBConnection($pdo, 'blog_test');
+        global $db;
+        $this->model = new Application_Model_Admin();
+        return $this->createDefaultDBConnection($db->getConnection(), 'blog_zftest');
     }
 
     public function getDataSet()
     {
-        $ArrSet = array(
-            'user'=>array(
-                array(
-                    'id'         => 1,
-                    'email'      => 'tianyi@163.com',
-                    'password'   => md5('123456')
-                    ),
-                array(
-                    'id'         => 2,
-                    'email'      => "'or''@163.com",
-                    'password'   => md5('123456')
-                    ),
-                array(
-                    'id'         => 3,
-                    'email'      => 'abc@163.com',
-                    'password'   => md5("'or''")
-                    )
-            ),
+        $this->data = array(
+            'title'      => 'title',
+            'formaltext' => 'testFormaltext',
+            'column'     => 1,
+            'tag'        => 'java,php',
+            'link'       => ''
+            );
+        $arrSet = array(
             'article'=>array(
                 array(
                     'id'         => 1,
@@ -60,39 +38,59 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
                     'formaltext' => '',
                     'column'     => 1,
                     'user_id'    => 1,
-                    'link'       => 'http://www/baidu.com',
+                    'link'       => 'http://www.baidu.com',
                     'is_link'    => 1
-                    )  
+                    )
             ),
             'tag'=>array(
-                array('id'=>1, 'name'=>'php', 'user_id'=>1),
-                array('id'=>2, 'name'=>'java', 'user_id'=>1)
+                array('id'=>1, 'name'=>'php'),
+                array('id'=>2, 'name'=>'java')
             ),
             'tag_mid'=>array(
                 array('id'=>1, 'tag_id'=>1, 'article_id'=>1),
-                array('id'=>2, 'tag_id'=>2, 'article_id'=>1)
+                array('id'=>2, 'tag_id'=>2, 'article_id'=>1),
+                array('id'=>3, 'tag_id'=>2, 'article_id'=>2)
             )
         );
-        return new MyApp_DbUnit_ArrayDataSet($ArrSet);
+        return new MyApp_DbUnit_ArrayDataSet($arrSet);
     }
 
-    // Edit article
+    // FetchEditArticle test
+    /**
+     * @expectedException   InvalidArgumentException
+     * @expectedExceptionMessage Article don\'t exists or illegal user !
+     */
+    public function testFetchEditArticleDontExist()
+    {
+        $actualData   = $this->model->fetchEditArticle(1, 3);
+    }
+    
+    public function testFetchEditArticle()
+    {
+        $actualData   = $this->model->fetchEditArticle(1, 1);
+        $expectedData = array(
+            'id'         => '1',
+            'title'      => 'test article',
+            'formaltext' => 'wojiushi zhengwen',
+            'column'     => '1',
+            'user_id'    => '1',
+            'link'       => '',
+            'is_link'    => '0',
+            'tags'        => 'php,java'
+        );
+        $this->assertEquals($expectedData, $actualData);
+    }
+
+    // EditArticle test
 
     /**
      * @expectedException   InvalidArgumentException
-     * @expectedExceptionMessage missing requied key title
+     * @expectedExceptionMessage Missing requied key title
      */
     public function testEditArticleNullTitle()
     {
-        $data = array(
-            'formaltext' => 'testFormaltext',
-            'column'     => 1,
-            'tag'        => 'php,java',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        editArticle($data, PDOStart(), $user_id, $article_id);
+        unset($this->data['title']);
+        $this->model->editArticle($this->data, 1, 1);
     }
 
     /**
@@ -101,34 +99,27 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
      */
     public function testEditArticleEmptyTitle()
     {
-        $data = array(
-            'title'      => '',
-            'formaltext' => 'testFormaltext',
-            'column'     => 1,
-            'tag'        => 'php,java,js',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        $result     = arrset();
-        editArticle($data, PDOStart(), $user_id, $article_id);
+        $this->data['title'] = '';
+        $this->model->editArticle($this->data, 1, 1);
+    }
+    /**
+     * @expectedException   InvalidArgumentException
+     * @expectedExceptionMessage Title is over range(255)!
+     */
+    public function testEditArticleTooLongTitle()
+    {
+        $this->data['title'] = str_pad('i', 256, 'i');
+        $this->model->editArticle($this->data, 1, 1);
     }
 
     /**
      * @expectedException   InvalidArgumentException
-     * @expectedExceptionMessage missing requied key formaltext
+     * @expectedExceptionMessage Missing requied key formaltext
      */
     public function testEditArticleNullFormaltext()
     {
-        $data  = array(
-            'title'      => 'testTitle',
-            'column'     => 1,
-            'tag'        => 'php,java',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        editArticle($data, PDOStart(), $user_id, $article_id);
+        unset($this->data['formaltext']);
+        $this->model->editArticle($this->data, 1, 1);
     }
 
     /**
@@ -137,70 +128,113 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
      */
     public function testEditArticleEmptyFormaltext()
     {
-        $data = array(
-            'title'      => 'testTitle',
-            'formaltext' => '',
-            'column'     => 1,
-            'tag'        => 'php,java,js',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        editArticle($data, PDOStart(), $user_id, $article_id);
+        $this->data['formaltext'] = '';
+        $this->model->editArticle($this->data, 1, 1);
     }
     
+    /**
+     * @expectedException   InvalidArgumentException
+     * @expectedExceptionMessage Formaltext is over range(65535)!
+     */
+    public function testEditArticleTooLongFormaltext()
+    {
+        $this->data['formaltext'] = str_pad('i', 65536, 'i');
+        $this->model->editArticle($this->data, 1, 1);
+    }
+
+    /**
+     * @expectedException   InvalidArgumentException
+     * @expectedExceptionMessage Missing requied key link
+     */
+    public function testEditArticleNullLink()
+    {
+        $this->data['formaltext'] = '';
+        unset($this->data['link']);
+        $this->model->editArticle($this->data, 1, 2);
+    }
+
     /**
      * @expectedException   InvalidArgumentException
      * @expectedExceptionMessage The link can not be empty
      */
     public function testEditArticleEmptyLink()
     {
-        $data = array(
-            'title'      => 'testTitle',
-            'formaltext' => '',
-            'column'     => 1,
-            'tag'        => 'php,java,js',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 2;
-        editArticle($data, PDOStart(), $user_id, $article_id);
+        $this->data['formaltext'] = '';
+        $this->model->editArticle($this->data, 1, 2);
+    }
+    public function invalidURLs()
+    {
+        return array(
+            array('wwww.www.'),
+            array('http:/wwww.www'),
+            array('htt//wwww.www'),
+            array('htttttttp'),
+            array(123)
+        );
     }
 
     /**
      * @expectedException   InvalidArgumentException
-     * @expectedExceptionMessage missing requied key column
+     * @expectedExceptionMessage Link is invalid
+     * @dataProvider invalidURLs
+     */
+    public function testEditArticleLink($link)
+    {
+        $this->data['formaltext'] = '';
+        $this->data['link'] = $link;
+        $this->model->editArticle($this->data, 1, 2);
+    }
+
+    /**
+     * @expectedException   InvalidArgumentException
+     * @expectedExceptionMessage Link is over range(2000)!
+     */
+    public function testEditArticleTooLongLink()
+    {
+        $this->data['formaltext'] = '';
+        $this->data['link'] = 'http://w.' . str_pad('i', 1992, 'i');
+        $this->model->editArticle($this->data, 1, 2);
+    }
+
+    /**
+     * @expectedException   InvalidArgumentException
+     * @expectedExceptionMessage Missing requied key column
      */
 
     public function testEditArticleNullColumn()
     {
-        $data = array(
-            'title'      => 'testTitle',
-            'formaltext' => 'testFormaltext',
-            'tag'        => 'php,java,js',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        editArticle($data, PDOStart(), $user_id, $article_id);
+        unset($this->data['column']);
+        $this->model->editArticle($this->data, 1, 1);
     }
 
     /**
      * @expectedException   InvalidArgumentException
      * @expectedExceptionMessage Column is invalid
      */
-    public function testEditArticleIllegalParam()
+    public function testEditArticleIllegalColumn()
     {
-        $data = array(
-            'title'      => "'or''",
-            'formaltext' => "'or''",
-            'column'     => 1.2,
-            'tag'        => "'or''",
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        editArticle($data, PDOStart(), $user_id, $article_id);
+        $this->data['column'] = 1.2;
+        $this->model->editArticle($this->data, 1, 1);
+    }
+
+    /**
+     * @expectedException   InvalidArgumentException
+     * @expectedExceptionMessage Don't use over 10 tags
+     */
+    public function testEditArticleTenMoreTags()
+    {
+        $this->data['tag'] = 'php,java,js,php,java,js,php,java,js,php,java,js';
+        $this->model->editArticle($this->data, 1, 1);
+    }
+
+    /**
+     * @expectedException   InvalidArgumentException
+     * @expectedExceptionMessage Some of tags is over range(32)!
+     */
+    public function testEditArticleToolongTags()
+    {
+        $this->data['tag'] = 'php,java,aaaaabbbbbcccccdddddeeeeefffffggg';
+        $this->model->editArticle($this->data, 1, 1);
     }
 
     /**
@@ -209,182 +243,65 @@ class mainTest extends PHPUnit_Extensions_Database_TestCase
      */
     public function testEditArticleWrongUser()
     {
-        $data = array(
-            'title'      => 'testTitle',
-            'formaltext' => 'testFormaltext',
-            'column'     => 1,
-            'tag'        => 'php,java,js',
-            'link'       => ''
-            );
-        $user_id    = 2;
-        $article_id = 1;
-        editArticle($data, PDOStart(), $user_id, $article_id);
-    }
-
-    public function testEditArticle()
-    {
-        $data = array(
-            'title'      => 'testTitle',
-            'formaltext' => 'testFormaltext',
-            'column'     => 1,
-            'tag'        => 'php,java',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        $result     = arrset();
-        $result['article'][0] = array(
-                    'id'         => 1,
-                    'title'      => 'testTitle',
-                    'formaltext' => 'testFormaltext',
-                    'column'     => 1,
-                    'user_id'    => 1,
-                    'link'       => '',
-                    'is_link'    => 0
-            );
-        unset($result['article'][2]);
-        editArticle($data, PDOStart(), $user_id, $article_id);
-        $expectedTable = new MyApp_DbUnit_ArrayDataSet($result);
-        $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
-
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->model->editArticle($this->data, 2, 1);
     }
 
     public function testEditArticleAddTag()
     {
-        $data = array(
-            'title'      => 'testTitle',
-            'formaltext' => 'testFormaltext',
-            'column'     => 1,
-            'tag'        => 'php,java,js',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        $result     = arrset();
-        $result['article'][0] = array(
-                'id'         => 1,
-                'title'      => 'testTitle',
-                'formaltext' => 'testFormaltext',
-                'column'     => 1,
-                'user_id'    => 1,
-                'link'       => '',
-                'is_link'    => 0
-            );
-        unset($result['article'][2]);
-        $result['tag'][2]     = array('id'=>3, 'name'=>'js', 'user_id'=>1);
-        $result['tag_mid'][2] = array('id'=>3, 'tag_id'=>3, 'article_id'=>1);
-        editArticle($data, PDOStart(), $user_id, $article_id);
-        $expectedTable = new MyApp_DbUnit_ArrayDataSet($result);
-        $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
+        $this->data['tag'] = 'php,java,js';
+        $this->model->editArticle($this->data, 1, 1);
+        $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-EditArticleAddTag.php');
+        $actualTable   = $this->getConnection()->createDataSet(array('article', 'tag', 'tag_mid'));
 
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
     }
 
     public function testEditArticleReduceTag()
     {
-        $data = array(
-            'title'      =>'testTitle',
-            'formaltext' =>'testFormaltext',
-            'column'     =>1,
-            'tag'        =>'php',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        $result     = arrset();
-        $result['article'][0] = array(
-                'id'         => 1,
-                'title'      => 'testTitle',
-                'formaltext' => 'testFormaltext',
-                'column'     => 1,
-                'user_id'    => 1,
-                'link'       => '',
-                'is_link'    => 0
-            );
-        unset($result['article'][2]);
-        $result['tag_mid'] = array(
-            array('id'=>1, 'tag_id'=>1, 'article_id'=>1)
-            );
-        editArticle($data, PDOStart(), $user_id, $article_id);
-        $expectedTable = new MyApp_DbUnit_ArrayDataSet($result);
-        $actualTable   = $this->getConnection()->createDataSet(array('article','tag','tag_mid'));
+        $this->data['tag'] = 'php,';
+        $this->model->editArticle($this->data, 1, 1);
+        $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-EditArticleReduceTag.php');
+        $actualTable   = $this->getConnection()->createDataSet(array('article', 'tag', 'tag_mid'));
 
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
     }
 
     public function testEditArticleEmptyTag()
     {
-        $data = array(
-            'title'      => 'testTitle',
-            'formaltext' => 'testFormaltext',
-            'column'     => 1,
-            'tag'        => '',
-            'link'       => ''
-            );
-        $user_id    = 1;
-        $article_id = 1;
-        $result     = arrset();
-        $result['article'][0] = array(
-                'id'         => 1,
-                'title'      => 'testTitle',
-                'formaltext' => 'testFormaltext',
-                'column'     => 1,
-                'user_id'    => 1,
-                'link'       => '',
-                'is_link'    => 0
-            );
-        unset($result['article'][2]);
-        unset($result['tag_mid']);
-        editArticle($data, PDOStart(), $user_id, $article_id);
-        $expectedTable = new MyApp_DbUnit_ArrayDataSet($result);
-        $actualTable   = $this->getConnection()->createDataSet(array('article','tag'));
+        $this->data['tag'] = '';
+        $this->model->editArticle($this->data, 1, 1);
+        $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-EditArticleEmptyTag.php');
+        $actualTable   = $this->getConnection()->createDataSet(array('article', 'tag', 'tag_mid'));
 
-        $this->assertEquals(0,$this->getConnection()->getRowCount('tag_mid'));
-        $this->assertDataSetsEqual($expectedTable,$actualTable);
+        $this->assertEquals(1, $this->getConnection()->getRowCount('tag_mid'));
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
+    }
+    
+    public function testEditArticleAllNewTag()
+    {
+        $this->data['tag'] = 'linux,swift';
+        $this->model->editArticle($this->data, 1, 1);
+        $expectedTable = new MyApp_DbUnit_ArrayDataSet(include __DIR__ . '/except-EditArticleAllNewTag.php');
+        $actualTable   = $this->getConnection()->createDataSet(array('article', 'tag', 'tag_mid'));
+
+        $this->assertDataSetsEqual($expectedTable, $actualTable);
     }
 
-    //Delete article
-
-    /**
-     * @expectedException   InvalidArgumentException
-     * @expectedExceptionMessage Illegal operation
-     */
-    public function testDeleteArticleIllegalArticle()
+    public function testFetchAll()
     {
-        $user_id    = 1;
-        $article_id = 'aaa';
-        deleteArticle (PDOStart(), $user_id, $article_id);
-    }
-
-    /**
-     * @expectedException   InvalidArgumentException
-     * @expectedExceptionMessage Delete failed: incorrect user
-     */
-    public function testDeleteArticleWrongUser()
-    {
-        $user_id    = 2;
-        $article_id = 1;
-        deleteArticle (PDOStart(), $user_id, $article_id);
-    }
-
-    /**
-     * @expectedException   InvalidArgumentException
-     * @expectedExceptionMessage Delete failed: article don't exist
-     */
-    public function testDeleteArticleWrongArticle()
-    {
-        $user_id    = 1;
-        $article_id = 3;
-        deleteArticle (PDOStart(), $user_id, $article_id);
-    }
-
-    public function testDeleteArticle()
-    {
-        $user_id    = 1;
-        $article_id = 1;
-        deleteArticle (PDOStart(), $user_id, $article_id);
-        $this->assertEquals(1,$this->getConnection()->getRowCount('article'));
-        $this->assertEquals(0,$this->getConnection()->getRowCount('tag_mid'));
+        $actualData   = $this->model->fetchAll(1);
+        $expectedData = array(
+            '1' =>array(
+                'title' => 'test article',
+                'edit'  => '/admin/edit/?id=1',
+                'del'   => '/admin/del/?id=1'
+            ),
+            '2' =>array(
+                'title' => 'test article2',
+                'edit'  => '/admin/edit/?id=2',
+                'del'   => '/admin/del/?id=2'
+            )
+        );
+        $this->assertEquals($expectedData, $actualData);
     }
 }
